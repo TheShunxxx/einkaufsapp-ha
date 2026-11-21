@@ -180,32 +180,26 @@
     .exp.green { background: #43a047; color: #fff; }
     .tag { border: 1px solid var(--divider-color, #ccc); color: var(--secondary-text-color, #777); }
     .portions { display: flex; align-items: center; gap: 4px; }
-    .lhead { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .06em; padding: 10px 4px 6px; margin-top: 8px; border-bottom: 2px solid; }
-    .lhead svg { width: 18px; height: 18px; }
+    .lhead { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; padding: 6px 2px 4px; margin: 10px 0 6px; border-bottom: 2px solid; }
+    .lhead:first-of-type { margin-top: 2px; }
+    .lhead svg { width: 16px; height: 16px; }
     .lhead.kuehl { color: #1976d2; border-color: #1976d2; }
     .lhead.gefrier { color: #0097a7; border-color: #0097a7; }
-    .litem { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--divider-color, #e0e0e0); }
-    .litem.busy { opacity: .6; }
+    .row.lrow { grid-template-columns: 52px minmax(0, 1fr) auto; }
     .badge { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 24px;
-      padding: 0 6px; box-sizing: border-box; border-radius: 999px; font-weight: 900; font-size: 12px; border: 1px solid var(--divider-color, #ddd); }
+      padding: 0 4px; box-sizing: border-box; border-radius: 999px; font-weight: 900; font-size: 12px; border: 1px solid var(--divider-color, #ddd); }
     .badge.good { background: color-mix(in srgb, #2e7d32 18%, transparent); color: #2e7d32; }
     .badge.ok { background: color-mix(in srgb, #2e7d32 10%, transparent); color: #2e7d32; }
     .badge.warn { background: color-mix(in srgb, #f9a825 18%, transparent); color: #b07800; }
     .badge.bad { background: color-mix(in srgb, #c62828 18%, transparent); color: #c62828; }
-    .ltext { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 auto; }
-    .lname { all: unset; cursor: pointer; font-weight: 700; overflow-wrap: anywhere; }
-    .lname:focus-visible { outline: 2px solid var(--primary-color, #03a9f4); border-radius: 4px; }
-    .lmeta { display: flex; flex-wrap: wrap; gap: 4px 8px; color: var(--secondary-text-color, #777); font-weight: 700; font-size: .92em; align-items: center; }
-    .lctrl { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
-    .plabel { color: var(--secondary-text-color, #777); font-weight: 800; font-size: 12px; letter-spacing: .02em; text-transform: uppercase; }
-    .pstep { display: flex; align-items: center; gap: 10px; padding: 5px; border: 1px solid var(--divider-color, #ddd); border-radius: 999px;
-      background: color-mix(in srgb, var(--secondary-background-color, #eee) 85%, transparent); }
-    .pstep .pv { min-width: 40px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
-    .round { width: 34px; height: 34px; border-radius: 999px; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer;
-      background: var(--card-background-color, #fff); color: var(--primary-text-color, #212121); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
-    .round:disabled, .lname:disabled { cursor: default; opacity: .5; }
-    .lact { display: flex; flex-direction: column; gap: 8px; }
+    .lname .sub { font-size: .88em; margin-left: 2px; }
+    .lname .tag { margin-left: 6px; }
+    .pstep { display: flex; align-items: center; gap: 2px; }
+    .pstep .pv { min-width: 34px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .narrow .row.lrow { grid-template-columns: 44px minmax(0, 1fr) auto; gap: 6px; }
+    .narrow .badge { width: 44px; font-size: 11px; }
+    .narrow .pstep .pv { min-width: 26px; }
     .sq.plainc { color: var(--primary-text-color, #212121); }
     .sq.armed { background: var(--error-color, #db4437); color: #fff; font-weight: 900; }
     .portions .pv { min-width: 30px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -217,7 +211,7 @@
     .narrow .head { gap: 8px; }
     .narrow .nav { padding-left: 0; border-left: none; }
     .narrow .gen { margin-left: 0; }
-    .narrow .row:not(.dinner):not(.left) { grid-template-columns: 14px 34px minmax(0, 1fr) auto; gap: 6px; }
+    .narrow .row:not(.dinner):not(.left):not(.lrow) { grid-template-columns: 14px 34px minmax(0, 1fr) auto; gap: 6px; }
     .narrow .when { flex-direction: column; gap: 0; align-items: flex-start; line-height: 1.2; }
     .narrow .date { font-size: .78em; }
     .narrow .sq { width: 32px; height: 32px; }
@@ -638,33 +632,30 @@
       for (const group of LEFT_GROUPS) {
         const list = items.filter((item) => item.place === group.place);
         if (!list.length) continue;
-        h += `<div class="lhead ${group.cls}">${svg(group.icon)}<span>${group.label}</span></div>`;
+        h += `<div class="lhead ${group.cls}">${svg(group.icon)}<span>${group.label}</span></div><div class="rows">`;
         h += list.map((item) => {
           const busy = this._isBusy(`l${item.id}`);
           const dis = busy ? "disabled" : "";
           const [text, cls, title] = expiry(item);
           const planned = item.planned ? `<span class="tag">eingeplant</span>` : "";
           const armed = this._delArm === item.id;
-          return `<div class="litem${busy ? " busy" : ""}">
+          return `<div class="row lrow${busy ? " busy" : ""}">
             <span class="badge ${cls}" title="${esc(title)}">${esc(text)}</span>
-            <div class="ltext">
-              <button class="lname" data-act="left-edit" data-id="${item.id}" ${dis} title="Bearbeiten">${esc(item.name)}</button>
-              <div class="lmeta"><span>${PLACES[item.place] || esc(item.place)}</span><span>· Ablauf ${longDate(item.expires_on)}</span>${planned}</div>
-              <div class="lctrl"><span class="plabel">Portionen</span>
-                <div class="pstep" role="group" aria-label="Portionen anpassen">
-                  <button class="round" data-act="left-step" data-id="${item.id}" data-d="-0.5" ${dis} title="−0,5" aria-label="Weniger">${ICON.down}</button>
-                  <span class="pv">${num(item.portions)}</span>
-                  <button class="round" data-act="left-step" data-id="${item.id}" data-d="0.5" ${dis} title="+0,5" aria-label="Mehr">${ICON.up}</button>
-                </div>
+            <button class="dish lname" data-act="left-edit" data-id="${item.id}" ${dis} title="Bearbeiten">${esc(item.name)}
+              <span class="sub">· bis ${this._narrow ? shortDate(item.expires_on) : longDate(item.expires_on)}</span>${planned}</button>
+            <div class="btns">
+              <div class="pstep" role="group" aria-label="Portionen">
+                <button class="sq" data-act="left-step" data-id="${item.id}" data-d="-0.5" ${dis} title="−0,5 Portionen" aria-label="Weniger">${ICON.down}</button>
+                <span class="pv" title="Portionen">${num(item.portions)}</span>
+                <button class="sq" data-act="left-step" data-id="${item.id}" data-d="0.5" ${dis} title="+0,5 Portionen" aria-label="Mehr">${ICON.up}</button>
               </div>
-            </div>
-            <div class="lact">
-              <button class="sq plainc" data-act="left-edit" data-id="${item.id}" ${dis} title="Bearbeiten" aria-label="Bearbeiten">${ICON.pencil}</button>
+              ${this._narrow ? "" : `<button class="sq plainc" data-act="left-edit" data-id="${item.id}" ${dis} title="Bearbeiten" aria-label="Bearbeiten">${ICON.pencil}</button>`}
               <button class="sq red${armed ? " armed" : ""}" data-act="left-del" data-id="${item.id}" ${dis}
                 title="${armed ? "Nochmal tippen zum Entfernen" : "Entfernen"}" aria-label="Entfernen">${armed ? "?" : ICON.close}</button>
             </div>
           </div>`;
         }).join("");
+        h += `</div>`;
       }
       return h;
     }
