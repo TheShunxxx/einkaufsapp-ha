@@ -5,11 +5,22 @@
  * Websocket-Befehl „einkaufsapp/api“ der Integration; das Token bleibt in HA. Die Karte lädt neu, sobald sich der
  * Zustand von sensor.einkaufsapp_stand ändert (jede Änderung in der App) und nach jeder eigenen Änderung.
  *
- * Optionen: stand_entity (Standard sensor.einkaufsapp_stand), tab (mittag|abend|reste), title.
+ * Optionen: stand_entity (ohne Angabe sucht die Karte den Stand-Sensor der Integration selbst, auch wenn HA ihm
+ * einen Bereich vorangestellt hat, z. B. sensor.kuche_einkaufsapp_stand), tab (mittag|abend|reste), title.
  */
 (() => {
   const CARD = "einkaufsapp-card";
   const DEFAULT_STAND = "sensor.einkaufsapp_stand";
+
+  /** Stand-Sensor der Integration finden: über das Entitäten-Register (Plattform einkaufsapp), sonst über den Namen. */
+  function findStand(hass) {
+    const ids = Object.keys(hass.states).filter((id) => id.startsWith("sensor.") && id.endsWith("einkaufsapp_stand"));
+    const registry = hass.entities || {};
+    const own = Object.keys(hass.states).find((id) => id.startsWith("sensor.") && registry[id]
+      && registry[id].platform === "einkaufsapp" && hass.states[id].attributes
+      && "versionen" in hass.states[id].attributes);
+    return own || ids[0];
+  }
   const DAYS = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
   const DAYS_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
   const PLACES = { kuehlschrank: "Kühlschrank", gefrierschrank: "Gefrierschrank" };
@@ -275,7 +286,7 @@
       const tab = TABS[config.tab] ? config.tab : "mittag";
       const entity = typeof config.stand_entity === "string" && config.stand_entity ? config.stand_entity : DEFAULT_STAND;
       const changedEntity = entity !== this._config.stand_entity;
-      this._config = { ...config, stand_entity: entity, tab };
+      this._config = { ...config, stand_entity: entity, stand_fixed: entity !== DEFAULT_STAND, tab };
       this._tab = tab;
       if (changedEntity) this._standSeen = undefined;
       this._render();
@@ -283,6 +294,13 @@
 
     set hass(hass) {
       this._hass = hass;
+      if (!this._config.stand_fixed && hass && hass.states && !hass.states[this._config.stand_entity]) {
+        const found = findStand(hass);
+        if (found && found !== this._config.stand_entity) {
+          this._config = { ...this._config, stand_entity: found };
+          this._standSeen = undefined;
+        }
+      }
       const state = hass && hass.states ? hass.states[this._config.stand_entity] : undefined;
       const app = state && state.attributes ? state.attributes.app : null;
       const stand = state ? state.state : "__fehlt__";

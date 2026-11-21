@@ -20,6 +20,9 @@ In der App erscheint danach in der Benutzerverwaltung das Konto „Home Assistan
 Zugang sofort gesperrt; HA fragt dann nach einem neuen Token.
 
 ## Was die Integration anlegt
+Ordnet man das Gerät beim Einrichten einem Bereich zu, setzt HA dessen Namen davor (z. B. `sensor.kuche_einkaufsapp_reste`).
+Die Karte findet ihren Sensor trotzdem selbst.
+
 | Entität | Inhalt |
 |---|---|
 | `sensor.einkaufsapp_wochenplan` | „KW 47“, Attribute: Tage, Abendessen, nächste Woche |
