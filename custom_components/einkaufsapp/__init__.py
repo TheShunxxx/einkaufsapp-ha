@@ -34,7 +34,7 @@ from .coordinator import EinkaufsappCoordinator, monday
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.SENSOR, Platform.TODO]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-VERSION = "0.1.1"
+VERSION = "0.1.2"
 
 type EinkaufsappConfigEntry = ConfigEntry[EinkaufsappCoordinator]
 
@@ -174,6 +174,8 @@ def register_services(hass: HomeAssistant) -> None:
         body = {"name": service.data["name"], "portions": service.data["portionen"], "place": service.data["ort"]}
         if expires := service.data.get("haltbar_bis"):
             body["expires_on"] = expires.isoformat()
+        if cooked := service.data.get("gekocht_am"):
+            body["cooked_on"] = cooked.isoformat()
         await call(coordinator_of(hass), "POST", "/api/leftovers", body)
 
     async def rate(service: ServiceCall) -> None:
@@ -199,6 +201,7 @@ def register_services(hass: HomeAssistant) -> None:
         vol.Required("portionen"): vol.All(vol.Coerce(float), vol.Range(min=0.5, max=99)),
         vol.Required("ort"): vol.In(["kuehlschrank", "gefrierschrank"]),
         vol.Optional("haltbar_bis"): cv.date,
+        vol.Optional("gekocht_am"): cv.date,
     }))
     hass.services.async_register(DOMAIN, "gericht_bewerten", rate, schema=vol.Schema({
         vol.Required("gericht"): cv.string,

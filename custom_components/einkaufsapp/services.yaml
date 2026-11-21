@@ -37,6 +37,9 @@ rest_einbuchen:
     haltbar_bis:
       selector:
         date:
+    gekocht_am:
+      selector:
+        date:
 gericht_bewerten:
   fields:
     gericht:

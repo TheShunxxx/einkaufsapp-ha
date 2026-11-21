@@ -114,13 +114,14 @@ async def test_services(hass: HomeAssistant, app) -> None:
     app.put(f"{URL}/api/recipes/2/rating", json={})
     await hass.services.async_call(DOMAIN, "plan_generieren", {}, blocking=True)
     await hass.services.async_call(DOMAIN, "rest_einbuchen", {"name": "Eintopf", "portionen": 1.5,
-                                                              "ort": "gefrierschrank"}, blocking=True)
+                                                              "ort": "gefrierschrank", "gekocht_am": "2026-11-02"}, blocking=True)
     await hass.services.async_call(DOMAIN, "gericht_bewerten", {"gericht": "curry", "sterne": 0}, blocking=True)
     sent = {(str(c[0]), str(c[1])): c[2] for c in app.mock_calls if c[0] != "GET"}
     assert sent[("POST", f"{URL}/api/week-plan/suggest")]["week_start"] == this.isoformat()
     assert sent[("PUT", f"{URL}/api/week-plan")] == {"week_start": this.isoformat(), "lunch": [3] * 7,
                                                      "dinners": [5, 6, 7]}
-    assert sent[("POST", f"{URL}/api/leftovers")] == {"name": "Eintopf", "portions": 1.5, "place": "gefrierschrank"}
+    assert sent[("POST", f"{URL}/api/leftovers")] == {"name": "Eintopf", "portions": 1.5, "place": "gefrierschrank",
+                                                       "cooked_on": "2026-11-02"}
     assert sent[("PUT", f"{URL}/api/recipes/2/rating")] == {"rating": None}
     with pytest.raises(HomeAssistantError, match="gibt es in der Einkaufsapp nicht"):
         await hass.services.async_call(DOMAIN, "gericht_bewerten", {"gericht": "Gibtsnicht", "sterne": 3},

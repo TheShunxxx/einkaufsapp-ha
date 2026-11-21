@@ -35,7 +35,7 @@
     "rest_einbuchen": {
       "name": "Rest einbuchen",
       "description": "Bucht einen Rest in der Einkaufsapp ein; ohne Datum rechnet die App die Haltbarkeit.",
-      "fields": {"name": {"name": "Gericht", "description": "Name des Rests"}, "portionen": {"name": "Portionen", "description": "Anzahl Portionen"}, "ort": {"name": "Ort", "description": "kuehlschrank oder gefrierschrank"}, "haltbar_bis": {"name": "Haltbar bis", "description": "optional"}}
+      "fields": {"name": {"name": "Gericht", "description": "Name des Rests"}, "portionen": {"name": "Portionen", "description": "Anzahl Portionen"}, "ort": {"name": "Ort", "description": "kuehlschrank oder gefrierschrank"}, "haltbar_bis": {"name": "Haltbar bis", "description": "optional"}, "gekocht_am": {"name": "Gekocht am", "description": "optional, Standard heute"}}
     },
     "gericht_bewerten": {
       "name": "Gericht bewerten",

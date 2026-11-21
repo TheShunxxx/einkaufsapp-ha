@@ -24,6 +24,9 @@
   const DAYS = ["Montag", "Dienstag", "Mittwoch", "Donnerstag", "Freitag", "Samstag", "Sonntag"];
   const DAYS_SHORT = ["Mo", "Di", "Mi", "Do", "Fr", "Sa", "So"];
   const PLACES = { kuehlschrank: "Kühlschrank", gefrierschrank: "Gefrierschrank" };
+  const PLACE_ICONS = { kuehlschrank: "❄️", gefrierschrank: "🧊" };
+  const KEEP_DAYS = { kuehlschrank: 3, gefrierschrank: 90 };  // wie KEEPS in der App
+  const keepUntil = (place) => isoDate(addDays(today(), KEEP_DAYS[place] || 3));
   const TABS = { mittag: "Mittag", abend: "Abend", reste: "Reste" };
   const DINNER_TARGET = 3; // wie planner.DINNER_TARGET in der App
   const MAX_PORTIONS = 99;
@@ -214,10 +217,10 @@
     .stepper { display: flex; gap: 6px; align-items: center; }
     .stepper input { width: 90px; text-align: center; }
     .seg { display: flex; gap: 6px; flex-wrap: wrap; }
-    .seg label { flex: 1; }
+    .seg label { flex: 0 0 auto; }
     .seg input { position: absolute; opacity: 0; pointer-events: none; }
-    .seg span { display: block; text-align: center; padding: 8px; border-radius: 8px; border: 1px solid var(--divider-color, #ccc); cursor: pointer; }
-    .seg input:checked + span { background: var(--primary-color, #03a9f4); color: var(--text-primary-color, #fff); border-color: transparent; }
+    .seg span { display: block; text-align: center; padding: 8px 14px; border-radius: 10px; border: 1px solid var(--divider-color, #ccc); cursor: pointer; font-weight: 600; }
+    .seg input:checked + span { background: color-mix(in srgb, var(--primary-color, #03a9f4) 14%, transparent); color: var(--primary-color, #03a9f4); border-color: var(--primary-color, #03a9f4); }
     .seg input:focus-visible + span { outline: 2px solid var(--primary-color, #03a9f4); outline-offset: 2px; }
     .dlg-foot { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; }
     .dlg-foot .left { margin-right: auto; }
@@ -920,8 +923,8 @@
           <label class="field"><span>Name</span><input type="text" name="name" maxlength="150" value="${esc(d.name)}" autocomplete="off"></label>
           ${this._portionsField(1, 0.5)}
           ${this._placeField("kuehlschrank")}
-          <label class="field"><span>Haltbar bis <small>(leer = automatisch: Kühlschrank 3 Tage, Gefrierschrank 90 Tage)</small></span>
-            <input type="date" name="expires"></label>
+          <label class="field"><span>Haltbar bis</span>
+            <input type="date" name="expires" value="${keepUntil("kuehlschrank")}" data-auto="1"></label>
           <div class="dlg-err" hidden></div>
           <div class="dlg-foot"><button type="button" class="plain" data-act="dlg-close">Abbrechen</button><button type="submit" class="plain primary">Einbuchen</button></div>
         </form>`;
@@ -954,7 +957,7 @@
 
     _placeField(current) {
       return `<div class="field"><span>Ort</span><div class="seg">${Object.entries(PLACES).map(([value, label]) =>
-        `<label><input type="radio" name="place" value="${value}" ${value === current ? "checked" : ""}><span>${label}</span></label>`).join("")}
+        `<label><input type="radio" name="place" value="${value}" ${value === current ? "checked" : ""}><span>${PLACE_ICONS[value]} ${label}</span></label>`).join("")}
       </div></div>`;
     }
 
@@ -1002,6 +1005,12 @@
     }
 
     _onInput(e) {
+      // Haltbar bis folgt dem Ort (Kühlschrank 3 Tage, Gefrierschrank 90 Tage), bis man das Datum selbst ändert.
+      if (this._dlg && this._dlg.kind === "book" && e.target.name === "expires") delete e.target.dataset.auto;
+      if (this._dlg && this._dlg.kind === "book" && e.target.name === "place") {
+        const expires = this._dlgEl.querySelector("input[name=expires]");
+        if (expires && expires.dataset.auto) expires.value = keepUntil(e.target.value);
+      }
       if (e.target.classList && e.target.classList.contains("search") && this._dlg) {
         this._dlg.q = e.target.value;
         this._dlg.rate = null;

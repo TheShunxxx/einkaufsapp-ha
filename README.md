@@ -37,7 +37,7 @@ Die Karte findet ihren Sensor trotzdem selbst.
 |---|---|
 | `einkaufsapp.plan_generieren` | freie Tage ab heute und Abendessen bis 3 würfeln (Regeln der App: Typ, Klasse, Sterne, letzte Wochen) |
 | `einkaufsapp.tag_neu_wuerfeln` | ein Mittagessen ersetzen |
-| `einkaufsapp.rest_einbuchen` | Rest einbuchen; ohne Datum rechnet die App die Haltbarkeit |
+| `einkaufsapp.rest_einbuchen` | Rest einbuchen; optional `gekocht_am` und `haltbar_bis`, sonst rechnet die App (Kühlschrank 3 Tage, Gefrierschrank 90 Tage) |
 | `einkaufsapp.gericht_bewerten` | Sterne 1–5 setzen, 0 löscht |
 | `einkaufsapp.artikel_hinzufuegen` | Artikel auf die Einkaufsliste |
 
