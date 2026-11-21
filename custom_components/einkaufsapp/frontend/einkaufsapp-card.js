@@ -75,18 +75,31 @@
       + '<rect x="5" y="11" width="14" height="5" opacity=".35"/>'),
     close: svg('<path d="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z"/>'),
     pencil: svg('<path d="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18,2.9 17.35,2.9 16.96,3.29L15.12,5.12L18.87,8.87M3,17.25V21H6.75L17.81,9.93L14.06,6.18L3,17.25Z"/>'),
+    down: svg('<path d="M7.41,8.58L12,13.17L16.59,8.58L18,10L12,16L6,10L7.41,8.58Z"/>'),
+    up: svg('<path d="M7.41,15.41L12,10.83L16.59,15.41L18,14L12,8L6,14L7.41,15.41Z"/>'),
     dots: svg('<circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>'),
   };
 
   /** Ablauf-Kennzeichen eines Rests: [Text, Farbklasse]. */
   const expiry = (item) => {
     const n = item.days_left;
-    if (n < 0) return ["abgelaufen", "red"];
-    if (n === 0) return ["heute", "yellow"];
-    if (n <= 2) return [`noch ${n} ${n === 1 ? "Tag" : "Tage"}`, "yellow"];
-    if (n <= 4) return [`noch ${n} Tage`, "lightgreen"];
-    return [`bis ${shortDate(item.expires_on)}`, "green"];
+    if (n < 0) return [`${n}T`, "bad", `seit ${-n} ${n === -1 ? "Tag" : "Tagen"} abgelaufen`];
+    if (n === 0) return ["heute", "warn", "läuft heute ab"];
+    const title = `noch ${n} ${n === 1 ? "Tag" : "Tage"}`;
+    if (n <= 2) return [`${n}T`, "warn", title];
+    if (n <= 4) return [`${n}T`, "ok", title];
+    return [`${n}T`, "good", title];
   };
+  const longDate = (s) => {
+    const d = parseDate(s);
+    return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+  };
+  const LEFT_GROUPS = [
+    { place: "kuehlschrank", label: "Kühlschrank", cls: "kuehl",
+      icon: '<path d="M7,2H17A2,2 0 0,1 19,4V20A2,2 0 0,1 17,22H7A2,2 0 0,1 5,20V4A2,2 0 0,1 7,2M7,4V9H17V4H7M7,11V20H17V11H7M8,5H10V8H8V5M8,12H10V17H8V12Z"/>' },
+    { place: "gefrierschrank", label: "Gefrierfach", cls: "gefrier",
+      icon: '<path d="M20.79,13.95L18.46,14.57L16.46,13.44V10.56L18.46,9.43L20.79,10.05L21.31,8.12L19.54,7.65L20,5.88L18.07,5.36L17.45,7.69L15.45,8.82L13,7.38V5.12L14.71,3.41L13.29,2L12,3.29L10.71,2L9.29,3.41L11,5.12V7.38L8.5,8.82L6.5,7.69L5.92,5.36L4,5.88L4.47,7.65L2.7,8.12L3.22,10.05L5.55,9.43L7.55,10.56V13.45L5.55,14.58L3.22,13.96L2.7,15.89L4.47,16.36L4,18.12L5.93,18.64L6.55,16.31L8.55,15.18L11,16.62V18.88L9.29,20.59L10.71,22L12,20.71L13.29,22L14.7,20.59L13,18.88V16.62L15.5,15.17L17.5,16.3L18.12,18.63L20,18.12L19.53,16.35L21.3,15.88L20.79,13.95M9.5,10.56L12,9.11L14.5,10.56V13.44L12,14.89L9.5,13.44V10.56Z"/>' },
+  ];
 
   const STYLE = `
     :host { display: block; }
@@ -167,6 +180,34 @@
     .exp.green { background: #43a047; color: #fff; }
     .tag { border: 1px solid var(--divider-color, #ccc); color: var(--secondary-text-color, #777); }
     .portions { display: flex; align-items: center; gap: 4px; }
+    .lhead { display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; padding: 10px 4px 6px; margin-top: 8px; border-bottom: 2px solid; }
+    .lhead svg { width: 18px; height: 18px; }
+    .lhead.kuehl { color: #1976d2; border-color: #1976d2; }
+    .lhead.gefrier { color: #0097a7; border-color: #0097a7; }
+    .litem { display: flex; gap: 12px; align-items: flex-start; padding: 10px 0; border-bottom: 1px solid var(--divider-color, #e0e0e0); }
+    .litem.busy { opacity: .6; }
+    .badge { flex: none; display: inline-flex; align-items: center; justify-content: center; width: 52px; height: 24px;
+      padding: 0 6px; box-sizing: border-box; border-radius: 999px; font-weight: 900; font-size: 12px; border: 1px solid var(--divider-color, #ddd); }
+    .badge.good { background: color-mix(in srgb, #2e7d32 18%, transparent); color: #2e7d32; }
+    .badge.ok { background: color-mix(in srgb, #2e7d32 10%, transparent); color: #2e7d32; }
+    .badge.warn { background: color-mix(in srgb, #f9a825 18%, transparent); color: #b07800; }
+    .badge.bad { background: color-mix(in srgb, #c62828 18%, transparent); color: #c62828; }
+    .ltext { display: flex; flex-direction: column; gap: 6px; min-width: 0; flex: 1 1 auto; }
+    .lname { all: unset; cursor: pointer; font-weight: 700; overflow-wrap: anywhere; }
+    .lname:focus-visible { outline: 2px solid var(--primary-color, #03a9f4); border-radius: 4px; }
+    .lmeta { display: flex; flex-wrap: wrap; gap: 4px 8px; color: var(--secondary-text-color, #777); font-weight: 700; font-size: .92em; align-items: center; }
+    .lctrl { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 4px; }
+    .plabel { color: var(--secondary-text-color, #777); font-weight: 800; font-size: 12px; letter-spacing: .02em; text-transform: uppercase; }
+    .pstep { display: flex; align-items: center; gap: 10px; padding: 5px; border: 1px solid var(--divider-color, #ddd); border-radius: 999px;
+      background: color-mix(in srgb, var(--secondary-background-color, #eee) 85%, transparent); }
+    .pstep .pv { min-width: 40px; text-align: center; font-weight: 800; font-variant-numeric: tabular-nums; }
+    .round { width: 34px; height: 34px; border-radius: 999px; border: 0; padding: 0; display: grid; place-items: center; cursor: pointer;
+      background: var(--card-background-color, #fff); color: var(--primary-text-color, #212121); box-shadow: 0 1px 2px rgba(0,0,0,.15); }
+    .round:disabled, .lname:disabled { cursor: default; opacity: .5; }
+    .lact { display: flex; flex-direction: column; gap: 8px; }
+    .sq.plainc { color: var(--primary-text-color, #212121); }
+    .sq.armed { background: var(--error-color, #db4437); color: #fff; font-weight: 900; }
     .portions .pv { min-width: 30px; text-align: center; font-variant-numeric: tabular-nums; }
     .portions .sq { font-size: 1.2em; }
     .foot { display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px; font-size: .85em; color: var(--secondary-text-color, #888); }
@@ -593,29 +634,37 @@
     _leftoversHtml() {
       const items = this._leftovers ? this._leftovers.items : [];
       let h = `<div class="bar" style="margin:0 0 4px"><button class="add" data-act="left-new">+ Rest einbuchen</button></div>`;
-      for (const [place, label] of Object.entries(PLACES)) {
-        const list = items.filter((item) => item.place === place);
-        h += `<div class="group">${label} (${list.length})</div>`;
-        if (!list.length) {
-          h += `<div class="empty-note">Nichts da.</div>`;
-          continue;
-        }
-        h += `<div class="rows">${list.map((item) => {
-          const key = `l${item.id}`;
-          const busy = this._isBusy(key);
+      if (!items.length) return h + `<div class="empty-note">Keine Reste eingetragen.</div>`;
+      for (const group of LEFT_GROUPS) {
+        const list = items.filter((item) => item.place === group.place);
+        if (!list.length) continue;
+        h += `<div class="lhead ${group.cls}">${svg(group.icon)}<span>${group.label}</span></div>`;
+        h += list.map((item) => {
+          const busy = this._isBusy(`l${item.id}`);
           const dis = busy ? "disabled" : "";
-          const [text, color] = expiry(item);
+          const [text, cls, title] = expiry(item);
           const planned = item.planned ? `<span class="tag">eingeplant</span>` : "";
-          return `<div class="row left${busy ? " busy" : ""}">
-            <button class="dish lname" data-act="left-edit" data-id="${item.id}" ${dis} title="Bearbeiten">${esc(item.name)}<span class="exp ${color}">${esc(text)}</span>${planned}</button>
-            <div class="btns portions">
-              <button class="sq" data-act="left-step" data-id="${item.id}" data-d="-0.5" ${dis} title="Eine halbe Portion weniger" aria-label="Weniger">−</button>
-              <span class="pv" title="Portionen">${num(item.portions)}</span>
-              <button class="sq" data-act="left-step" data-id="${item.id}" data-d="0.5" ${dis} title="Eine halbe Portion mehr" aria-label="Mehr">+</button>
-              <button class="sq" data-act="left-edit" data-id="${item.id}" ${dis} title="Bearbeiten" aria-label="Bearbeiten">${ICON.pencil}</button>
+          const armed = this._delArm === item.id;
+          return `<div class="litem${busy ? " busy" : ""}">
+            <span class="badge ${cls}" title="${esc(title)}">${esc(text)}</span>
+            <div class="ltext">
+              <button class="lname" data-act="left-edit" data-id="${item.id}" ${dis} title="Bearbeiten">${esc(item.name)}</button>
+              <div class="lmeta"><span>${PLACES[item.place] || esc(item.place)}</span><span>· Ablauf ${longDate(item.expires_on)}</span>${planned}</div>
+              <div class="lctrl"><span class="plabel">Portionen</span>
+                <div class="pstep" role="group" aria-label="Portionen anpassen">
+                  <button class="round" data-act="left-step" data-id="${item.id}" data-d="-0.5" ${dis} title="−0,5" aria-label="Weniger">${ICON.down}</button>
+                  <span class="pv">${num(item.portions)}</span>
+                  <button class="round" data-act="left-step" data-id="${item.id}" data-d="0.5" ${dis} title="+0,5" aria-label="Mehr">${ICON.up}</button>
+                </div>
+              </div>
+            </div>
+            <div class="lact">
+              <button class="sq plainc" data-act="left-edit" data-id="${item.id}" ${dis} title="Bearbeiten" aria-label="Bearbeiten">${ICON.pencil}</button>
+              <button class="sq red${armed ? " armed" : ""}" data-act="left-del" data-id="${item.id}" ${dis}
+                title="${armed ? "Nochmal tippen zum Entfernen" : "Entfernen"}" aria-label="Entfernen">${armed ? "?" : ICON.close}</button>
             </div>
           </div>`;
-        }).join("")}</div>`;
+        }).join("");
       }
       return h;
     }
@@ -752,6 +801,23 @@
         case "left-edit": {
           const item = (this._leftovers.items || []).find((x) => x.id === id);
           if (item) this._openDialog({ kind: "edit", item: { ...item }, key: `l${id}` });
+          break;
+        }
+        case "left-del": {
+          const item = (this._leftovers.items || []).find((x) => x.id === id);
+          if (!item) break;
+          if (this._delArm !== id) {
+            this._delArm = id;
+            clearTimeout(this._delTimer);
+            this._delTimer = setTimeout(() => { this._delArm = null; this._render(); }, 4000);
+            this._render();
+            break;
+          }
+          this._delArm = null;
+          this._run(`l${id}`, async () => {
+            this._applyLeftovers(await this._api("DELETE", `/api/leftovers/${id}`));
+            return `„${item.name}“ entfernt.`;
+          });
           break;
         }
         case "left-new":

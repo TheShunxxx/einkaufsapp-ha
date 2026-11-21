@@ -34,7 +34,7 @@ from .coordinator import EinkaufsappCoordinator, monday
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.SENSOR, Platform.TODO]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-VERSION = "0.1.2"
+VERSION = "0.1.3"
 
 type EinkaufsappConfigEntry = ConfigEntry[EinkaufsappCoordinator]
 
