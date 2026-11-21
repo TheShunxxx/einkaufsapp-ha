@@ -4,12 +4,17 @@
       "user": {
         "title": "Einkaufsapp verbinden",
         "description": "Adresse der Einkaufsapp im Heimnetz (z. B. http://192.168.1.20:8080) und das Token aus secrets/ha_token.txt im Projektordner der App.",
-        "data": {"url": "Adresse", "token": "Token"}
+        "data": {
+          "url": "Adresse",
+          "token": "Token"
+        }
       },
       "reauth_confirm": {
         "title": "Neues Token",
         "description": "Die Einkaufsapp lehnt das gespeicherte Token ab. Bitte das aktuelle Token aus secrets/ha_token.txt eintragen. Ist das Konto „Home Assistant“ in der App deaktiviert, dort wieder aktivieren.",
-        "data": {"token": "Token"}
+        "data": {
+          "token": "Token"
+        }
       }
     },
     "error": {
@@ -22,30 +27,77 @@
     }
   },
   "services": {
-    "plan_generieren": {
-      "name": "Plan generieren",
-      "description": "Füllt freie Tage ab heute und Abendessen bis 3 nach den Würfelregeln der App.",
-      "fields": {"woche": {"name": "Woche", "description": "Ein Tag der Woche; ohne Angabe die aktuelle."}}
-    },
     "tag_neu_wuerfeln": {
       "name": "Tag neu würfeln",
       "description": "Ersetzt das Mittagessen eines Tages durch ein anderes passendes Gericht.",
-      "fields": {"tag": {"name": "Tag", "description": "montag … sonntag"}, "woche": {"name": "Woche", "description": "Ein Tag der Woche; ohne Angabe die aktuelle."}}
+      "fields": {
+        "tag": {
+          "name": "Tag",
+          "description": "montag … sonntag"
+        },
+        "woche": {
+          "name": "Woche",
+          "description": "Ein Tag der Woche; ohne Angabe die aktuelle."
+        }
+      }
     },
     "rest_einbuchen": {
       "name": "Rest einbuchen",
       "description": "Bucht einen Rest in der Einkaufsapp ein; ohne Datum rechnet die App die Haltbarkeit.",
-      "fields": {"name": {"name": "Gericht", "description": "Name des Rests"}, "portionen": {"name": "Portionen", "description": "Anzahl Portionen"}, "ort": {"name": "Ort", "description": "kuehlschrank oder gefrierschrank"}, "haltbar_bis": {"name": "Haltbar bis", "description": "optional"}, "gekocht_am": {"name": "Gekocht am", "description": "optional, Standard heute"}}
+      "fields": {
+        "name": {
+          "name": "Gericht",
+          "description": "Name des Rests"
+        },
+        "portionen": {
+          "name": "Portionen",
+          "description": "Anzahl Portionen"
+        },
+        "ort": {
+          "name": "Ort",
+          "description": "kuehlschrank oder gefrierschrank"
+        },
+        "haltbar_bis": {
+          "name": "Haltbar bis",
+          "description": "optional"
+        },
+        "gekocht_am": {
+          "name": "Gekocht am",
+          "description": "optional, Standard heute"
+        }
+      }
     },
     "gericht_bewerten": {
       "name": "Gericht bewerten",
       "description": "Setzt die Sterne eines Rezepts (0 löscht die Bewertung).",
-      "fields": {"gericht": {"name": "Gericht", "description": "Name des Rezepts wie in der App"}, "sterne": {"name": "Sterne", "description": "0–5"}}
+      "fields": {
+        "gericht": {
+          "name": "Gericht",
+          "description": "Name des Rezepts wie in der App"
+        },
+        "sterne": {
+          "name": "Sterne",
+          "description": "0–5"
+        }
+      }
     },
     "artikel_hinzufuegen": {
       "name": "Artikel hinzufügen",
       "description": "Setzt einen Artikel auf die Einkaufsliste der App.",
-      "fields": {"name": {"name": "Artikel", "description": "z. B. Milch"}, "menge": {"name": "Menge", "description": "optional"}, "einheit": {"name": "Einheit", "description": "optional: Stück, Packung, g, kg, ml oder l"}}
+      "fields": {
+        "name": {
+          "name": "Artikel",
+          "description": "z. B. Milch"
+        },
+        "menge": {
+          "name": "Menge",
+          "description": "optional"
+        },
+        "einheit": {
+          "name": "Einheit",
+          "description": "optional: Stück, Packung, g, kg, ml oder l"
+        }
+      }
     }
   }
 }

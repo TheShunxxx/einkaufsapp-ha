@@ -28,7 +28,6 @@
   const KEEP_DAYS = { kuehlschrank: 3, gefrierschrank: 90 };  // wie KEEPS in der App
   const keepUntil = (place) => isoDate(addDays(today(), KEEP_DAYS[place] || 3));
   const TABS = { mittag: "Mittag", abend: "Abend", reste: "Reste" };
-  const DINNER_TARGET = 3; // wie planner.DINNER_TARGET in der App
   const MAX_PORTIONS = 99;
   const NARROW = 600;
 
@@ -62,7 +61,6 @@
   const num = (n) => String(Math.round(Number(n) * 100) / 100).replace(".", ",");
   const parseNum = (s) => parseFloat(String(s).replace(",", "."));
   const errText = (err) => (err && (err.message || err.error)) || String(err || "Unbekannter Fehler");
-  const sameList = (a, b) => JSON.stringify(a) === JSON.stringify(b);
 
   const svg = (inner) => `<svg viewBox="0 0 24 24" aria-hidden="true">${inner}</svg>`;
   const ICON = {
@@ -528,7 +526,6 @@
           <button class="nb txt" data-act="week" data-d="0" ${current ? "disabled" : ""}>Diese Woche</button>
           <button class="nb" data-act="week" data-d="1" title="Nächste Woche" aria-label="Nächste Woche">›</button>
         </div>
-        <button class="gen" data-act="generate" ${busy ? "disabled" : ""}>Plan neu generieren</button>
       </div>`;
     }
 
@@ -702,9 +699,6 @@
         case "week":
           this._shiftWeek(Number(el.dataset.d));
           break;
-        case "generate":
-          this._run("plan", () => this._generate());
-          break;
         case "menu":
           this._menu = this._menu === el.dataset.key ? null : el.dataset.key;
           this._render();
@@ -856,23 +850,6 @@
       this._menu = null;
       this._render();
       this._load();
-    }
-
-    async _generate() {
-      const lunch = this._lunch();
-      const dinners = this._dinners();
-      const first = Math.min(Math.max(dayDiff(this._week, today()), 0), 7);
-      const lunchFull = lunch.slice(first).every(Boolean);
-      const dinnerFull = dinners.length + this._plan.rest_dinners.length >= DINNER_TARGET;
-      if (lunchFull && dinnerFull) return "Alles schon geplant.";
-      const result = await this._suggest({});
-      const changed = !sameList(result.lunch, lunch) || !sameList(result.dinners, dinners);
-      if (changed) await this._savePlan(result.lunch, result.dinners);
-      if (result.missing > 0) {
-        const n = result.missing;
-        return { text: `${n} ${n === 1 ? "Platz blieb" : "Plätze blieben"} frei – nicht genug passende Rezepte`, kind: "warn" };
-      }
-      return changed ? "Plan generiert." : "Alles schon geplant.";
     }
 
     // ---------- Ziehen zum Tauschen (Maus und Touch) ----------

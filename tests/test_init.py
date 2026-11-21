@@ -112,7 +112,8 @@ async def test_services(hass: HomeAssistant, app) -> None:
     app.put(f"{URL}/api/week-plan", json={})
     app.post(f"{URL}/api/leftovers", json={})
     app.put(f"{URL}/api/recipes/2/rating", json={})
-    await hass.services.async_call(DOMAIN, "plan_generieren", {}, blocking=True)
+    assert not hass.services.has_service(DOMAIN, "plan_generieren")  # ganzer Plan nur in der App, mit Rückfrage
+    await hass.services.async_call(DOMAIN, "tag_neu_wuerfeln", {"tag": "montag"}, blocking=True)
     await hass.services.async_call(DOMAIN, "rest_einbuchen", {"name": "Eintopf", "portionen": 1.5,
                                                               "ort": "gefrierschrank", "gekocht_am": "2026-11-02"}, blocking=True)
     await hass.services.async_call(DOMAIN, "gericht_bewerten", {"gericht": "curry", "sterne": 0}, blocking=True)

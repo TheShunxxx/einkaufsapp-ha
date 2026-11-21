@@ -34,7 +34,7 @@ from .coordinator import EinkaufsappCoordinator, monday
 _LOGGER = logging.getLogger(__name__)
 PLATFORMS = [Platform.SENSOR, Platform.TODO]
 CONFIG_SCHEMA = cv.config_entry_only_config_schema(DOMAIN)
-VERSION = "0.1.4"
+VERSION = "0.1.5"
 
 type EinkaufsappConfigEntry = ConfigEntry[EinkaufsappCoordinator]
 
@@ -163,9 +163,6 @@ async def find_recipe(coordinator: EinkaufsappCoordinator, name: str) -> dict:
 
 
 def register_services(hass: HomeAssistant) -> None:
-    async def generate(service: ServiceCall) -> None:
-        await save_suggestion(coordinator_of(hass), week_of(service.data), {})
-
     async def reroll(service: ServiceCall) -> None:
         await save_suggestion(coordinator_of(hass), week_of(service.data),
                               {"day": DAY_KEYS.index(service.data["tag"])})
@@ -193,7 +190,6 @@ def register_services(hass: HomeAssistant) -> None:
         await call(coordinator_of(hass), "POST", "/api/list/items", body)
 
     week = {vol.Optional("woche"): cv.date}
-    hass.services.async_register(DOMAIN, "plan_generieren", generate, schema=vol.Schema(week))
     hass.services.async_register(DOMAIN, "tag_neu_wuerfeln", reroll,
                                  schema=vol.Schema({vol.Required("tag"): vol.In(DAY_KEYS), **week}))
     hass.services.async_register(DOMAIN, "rest_einbuchen", book, schema=vol.Schema({
